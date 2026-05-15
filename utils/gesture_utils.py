@@ -99,14 +99,20 @@ class GestureController:
             self._reset_drag()
             self.prev_scroll_y = None
 
-        # Gesto de Paz (Indicador + Médio): utilizado para navegação vertical contínua
+        # Gesto de Paz (Indicador + Médio): Auto-Scroll (Joystick)
         elif ind and med and not any([pol, ane, min_]):
-            if self.prev_scroll_y is not None:
-                # Calcula a diferença (delta) da posição real 'y' para inferir a velocidade e direção da rolagem
-                diff = self.prev_scroll_y - y_raw
-                if abs(diff) > 8:
-                    pyautogui.scroll(int(diff * 2))
-            self.prev_scroll_y = y_raw
+            # Captura a posição inicial como âncora (ponto neutro do joystick)
+            if self.prev_scroll_y is None:
+                self.prev_scroll_y = y_raw 
+
+            diff = self.prev_scroll_y - y_raw
+            
+            # Zona morta de 15px para ignorar tremores
+            if abs(diff) > 15:
+                # Limita a velocidade entre 1 e 5 clicks por frame (cross-platform)
+                velocidade = max(1, min(5, int(abs(diff) / 15)))
+                pyautogui.scroll(velocidade if diff > 0 else -velocidade)
+                
             self._reset_drag()
             self.right_clicked = False
         
